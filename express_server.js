@@ -10,11 +10,13 @@ app.set('view engine', 'ejs');
 function generateRandomString() {
   let result = "";
   for (let i = 0; i < 6; i++) {
-    let code = Math.floor(Math.random() * 36);
+    let code = Math.floor(Math.random() * 62);
     if (code < 10) {
       result += code.toString();
+    } else if (code > 9 && code < 36) {
+      result +=  String.fromCharCode(code + 55)
     } else {
-      result += String.fromCharCode(code + 87);
+      result += String.fromCharCode(code + 61);
     }
   }
   return result;
@@ -39,8 +41,9 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send(generateRandomString());         // Respond with 'Ok' (we will replace this)
+  let shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res. redirect(`/urls/${shortURL}`);
 });
 
 app.get('/urls/:shortURL', (req, res) => {
@@ -48,6 +51,14 @@ app.get('/urls/:shortURL', (req, res) => {
   const longURL = urlDatabase[shortURL];
   const templateVars = { shortURL, longURL };
   res.render('urls_show', templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  if (longURL === undefined) {
+    return res.send('<h1>We could not find that shortURL.\n</h1><p>head back to <a href="/urls">URL list</p>' )
+  }
+  res.redirect(longURL);
 });
 
 app.get("/urls.json", (req, res) => {
