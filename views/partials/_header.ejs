@@ -10,5 +10,20 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
+    <% if (username === undefined) { %>
+      <form action="/login" type="text" method="POST" class="float-end">
+        <div class="input-group mb-3" style="margin-top: 10px">
+          <input type="text" name="username" class="form-control" placeholder="username" aria-label="username" aria-describedby="basic-addon2">
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="submit" style="background-color: rgb(138, 199, 229)" >Submit</button>
+          </div>
+        </div>
+      </form>
+    <% } else { %>
+      <div class="navbar-brand" style="color: rgb(207, 209, 219)">Logged in as: <span style="color:rgb(47, 48, 101)"><%= username %></span></div>
+      <form action="/logout" type="button" method="POST" class="float-end">
+        <button type="submit" class="btn btn-danger">Logout</button>
+      </form>
+    <% } %>
   </nav>
 </header>
