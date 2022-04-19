@@ -23,7 +23,7 @@ const generateRandomString = function() {
     }
   }
   return result;
-}
+};
 
 const urlDatabase = {
   'b2xVn2': 'http://www.lighthouselabs.ca',
@@ -35,12 +35,12 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  const templateVars = {urls: urlDatabase, username: req.cookies["username"],};
+  const templateVars = {urls: urlDatabase, username: req.cookies['username'],};
   res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
-  const templateVars = { username: req.cookies["username"] }
+  const templateVars = { username: req.cookies['username'] };
   res.render('urls_new', templateVars);
 });
 
@@ -53,7 +53,7 @@ app.post('/urls', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
-  const templateVars = { shortURL, longURL, username: req.cookies["username"], };
+  const templateVars = { shortURL, longURL, username: req.cookies['username'], };
   res.render('urls_show', templateVars);
 });
 
@@ -73,7 +73,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   if (longURL === undefined) {
-    return res.send('<h1>We could not find that shortURL.\n</h1><p>head back to <a href="/urls">URL list</p>' )
+    return res.send('<h1>We could not find that shortURL.\n</h1><p>head back to <a href="/urls">URL list</p>');
   }
   res.redirect(longURL);
 });
@@ -86,6 +86,12 @@ app.post('/login', (req, res) =>{
 app.post('/logout', (req, res) => {
   res.clearCookie('username');
   res.redirect('/urls');
+});
+
+app.get('/register', (req, res) => {
+  const registered = true;
+  const templateVars = { username: req.cookies['username'], registered };
+  res.render('register', templateVars);
 });
 
 app.get('/urls.json', (req, res) => {
