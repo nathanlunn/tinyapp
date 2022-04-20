@@ -42,14 +42,13 @@ const users = {
     password: "dishwasher-funk"
   }
 };
-
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
 
 app.get('/urls', (req, res) => {
   const templateVars = {urls: urlDatabase, users, userId: req.cookies['user_id']};
-  console.log(users[req.cookies['user_id']]);
+    
   res.render('urls_index', templateVars);
 });
 
@@ -98,8 +97,19 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) =>{
-  res.cookie('username', req.body.username);
-  res.redirect('/urls');
+  const email = req.body.email;
+  const password = req.body.password;
+  for (let user in users) {
+    if (users[user].email === email) {
+      if (users[user].password === password) {
+        res.cookie('user_id', users[user].id);
+        return res.redirect('/urls');
+
+      }
+    }
+  }
+  res.status(403);
+  throw new Error('Email or Password was not correct');
 });
 
 app.post('/logout', (req, res) => {
