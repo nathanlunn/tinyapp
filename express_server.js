@@ -91,6 +91,10 @@ app.post('/urls', (req, res) => {
 // Read, edit, and delete specific shortURL
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
+  if (urlDatabase[shortURL] === undefined) {
+    res.status(404);
+    throw new Error('ShortURL does not exist');
+  }
   const longURL = urlDatabase[shortURL].longURL;
   const templateVars = { shortURL, longURL, users, urls: urlDatabase, userId: req.cookies['user_id'] };
   res.render('urls_show', templateVars);
