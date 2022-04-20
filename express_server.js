@@ -8,6 +8,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
+const bcrypt = require('bcryptjs');
+
 app.set('view engine', 'ejs');
 
 const generateRandomString = function() {
@@ -43,12 +45,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", 10)
   }
 };
 
@@ -66,7 +68,6 @@ app.get('/urls', (req, res) => {
     }
   }
   const templateVars = {urls: filteredDatabase, users, userId: req.cookies['user_id']};
-  console.log(req.cookies.user_id);
   res.render('urls_index', templateVars);
 });
 
@@ -143,7 +144,7 @@ app.post('/login', (req, res) =>{
   const password = req.body.password;
   for (let user in users) {
     if (users[user].email === email) {
-      if (users[user].password === password) {
+      if (bcrypt.compareSync(password, users[user].password)) {
         res.cookie('user_id', users[user].id);
         return res.redirect('/urls');
 
@@ -167,7 +168,7 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
-  const password = req.body.password;
+  const password = bcrypt.hashSync(req.body.password, 10);
   if (email.length === 0 || password.length === 0) {
     res.status(400);
     throw new Error('Must Fill in Email and Password field');
