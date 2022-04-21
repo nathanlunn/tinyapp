@@ -10,7 +10,7 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
-    <% if (users[userId] === undefined) { %>
+    <% if (!users[userId]) { %>
       <form action="/login" type="text" method="GET" class="float-end">
         <div class="input-group mb-3" style="margin-top: 10px">
           <div class="input-group-append">

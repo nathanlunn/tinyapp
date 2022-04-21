@@ -16,10 +16,11 @@ app.use(cookieSession({
 }));
 
 const bcrypt = require('bcryptjs');
+const salt = bcrypt.genSaltSync(10);
 
 app.set('view engine', 'ejs');
 
-let { generateRandomString, getUserByEmail } = require('./helpers');
+const generateHelperFunctions = require('./helpers');
 
 
 // databases
@@ -29,15 +30,27 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
+    password: bcrypt.hashSync("purple-monkey-dinosaur", salt)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: bcrypt.hashSync("dishwasher-funk", 10)
+    password: bcrypt.hashSync("dishwasher-funk", salt)
   }
 };
 
+
+// helper functions
+const { generateRandomString, getUserByEmail, validCookie, urlsOwnedByUser } = generateHelperFunctions(users, urlDatabase);
+
+
+// custom middleware
+app.use((req, res, next) => {
+  if (!validCookie(req.session.user_id, users)) {
+    delete req.session.user_id;
+  }
+  next();
+});
 
 
 // home
@@ -45,30 +58,27 @@ app.get('/', (req, res) => {
   if (req.session.user_id) {
     return res.redirect('/urls');
   }
-  res.redirect('/login');
+
+  return res.redirect('/login');
 });
 
 
 // Browse urls
 app.get('/urls', (req, res) => {
-  const filteredDatabase = {};
-  for (let url in urlDatabase) {
-    if (urlDatabase[url].userID === req.session.user_id) {
-      filteredDatabase[url] = urlDatabase[url];
-    }
-  }
+  const filteredDatabase = urlsOwnedByUser(req.session.user_id);
   const templateVars = {urls: filteredDatabase, users, userId: req.session.user_id};
-  res.render('urls_index', templateVars);
+  return res.render('urls_index', templateVars);
 });
 
 
 // Making a new shortURL
 app.get('/urls/new', (req, res) => {
-  if (req.session.user_id === undefined) {
-    res.redirect('/login');
+  if (!req.session.user_id) {
+    return res.redirect('/login');
   }
-  const templateVars = { users,  userId: req.session.user_id, blank: false };
-  res.render('urls_new', templateVars);
+
+  const templateVars = { users,  userId: req.session.user_id, blank: false,};
+  return res.render('urls_new', templateVars);
 });
 
 app.post('/urls', (req, res) => {
@@ -79,16 +89,21 @@ app.post('/urls', (req, res) => {
     const templateVars = { users,  userId: req.session.user_id, statusCode, errorMessage };
     return res.render('error', templateVars);
   }
+
   if (req.body.longURL === '') {
-    const templateVars = { users,  userId: req.session.user_id, blank: true };
-    res.render('urls_new', templateVars);
+    const templateVars = { users,  userId: req.session.user_id, blank: true,};
+    return res.render('urls_new', templateVars);
   }
+
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.session.user_id, dateCreated: new Date(), visits: 0, uniqueVisits: [] };
-  console.log(urlDatabase[shortURL].dateCreated);
-  console.log(urlDatabase[shortURL].visits);
-  console.log(urlDatabase[shortURL].uniqueVisits.length);
-  res.redirect(`/urls/${shortURL}`);
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: req.session.user_id,
+    dateCreated: new Date(),
+    visits: 0,
+    uniqueVisits: []
+  };
+  return res.redirect(`/urls/${shortURL}`);
 });
 
 
@@ -102,9 +117,10 @@ app.get('/urls/:shortURL', (req, res) => {
     const templateVars = { users,  userId: req.session.user_id, statusCode, errorMessage };
     return res.render('error', templateVars);
   }
+
   const longURL = urlDatabase[shortURL].longURL;
   const templateVars = { shortURL, longURL, users, urls: urlDatabase, userId: req.session.user_id, blank: false };
-  res.render('urls_show', templateVars);
+  return res.render('urls_show', templateVars);
 });
 
 app.post('/urls/:shortURL', (req, res) => {
@@ -116,6 +132,7 @@ app.post('/urls/:shortURL', (req, res) => {
     const templateVars = { users,  userId: req.session.user_id, statusCode, errorMessage };
     return res.render('error', templateVars);
   }
+
   let longURL = req.body.longURL;
   if (!req.session.user_id) {
     res.status(403);
@@ -124,15 +141,18 @@ app.post('/urls/:shortURL', (req, res) => {
     const templateVars = { users,  userId: req.session.user_id, statusCode, errorMessage };
     return res.render('error', templateVars);
   }
+
   if (longURL === '') {
     res.status(403);
     const templateVars = { shortURL, longURL, users, urls: urlDatabase, userId: req.session.user_id, blank: true };
     return res.render('urls_show', templateVars);
   }
+
   if (urlDatabase[shortURL].userID === req.session.user_id) {
     urlDatabase[shortURL].longURL = longURL;
     return res.redirect('/urls');
   }
+
   res.status(403);
   const statusCode = 403;
   const errorMessage = 'You can\'t edit a shortURL you don\'t own';
@@ -142,7 +162,7 @@ app.post('/urls/:shortURL', (req, res) => {
 
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
-  if (urlDatabase[shortURL].userID === req.session.user_id) {
+  if (urlDatabase[shortURL] && urlDatabase[shortURL].userID === req.session.user_id) {
     delete urlDatabase[shortURL];
     return res.redirect('/urls');
   }
@@ -163,23 +183,26 @@ app.get('/u/:shortURL', (req, res) => {
     const templateVars = { users,  userId: req.session.user_id, statusCode, errorMessage };
     return res.render('error', templateVars);
   }
+
   const shortURL = req.params.shortURL;
   urlDatabase[shortURL].visits++;
   if (!urlDatabase[shortURL].uniqueVisits.includes(req.session.user_id)) {
     urlDatabase[shortURL].uniqueVisits.push(req.session.user_id);
   }
+
   const longURL = urlDatabase[shortURL].longURL;
-  res.redirect(longURL);
+  return res.redirect(longURL);
 });
 
 
 // login, register, and logout functionality
 app.get('/login', (req, res) => {
   if (req.session.user_id) {
-    res.redirect('/urls');
+    return res.redirect('/urls');
   }
+
   const templateVars = {urls: urlDatabase, users, userId: req.session.user_id, failed: false};
-  res.render('login', templateVars);
+  return res.render('login', templateVars);
 });
 
 app.post('/login', (req, res) =>{
@@ -192,52 +215,53 @@ app.post('/login', (req, res) =>{
       return res.redirect('/urls');
     }
   }
+
   res.status(403);
   const templateVars = {urls: urlDatabase, users, userId: req.session.user_id, failed: true};
-  res.render('login', templateVars);
+  return res.render('login', templateVars);
 });
 
 app.post('/logout', (req, res) => {
-  req.session.user_id = undefined;
-  res.redirect('/urls');
+  delete req.session.user_id;
+  return res.redirect('/urls');
 });
 
 app.get('/register', (req, res) => {
   if (req.session.user_id) {
-    res.redirect('/urls');
+    return res.redirect('/urls');
   }
+
   const templateVars = { users, userId: req.session.user_id, blank: false, inUse: false };
-  res.render('register', templateVars);
+  return res.render('register', templateVars);
 });
 
 app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
-  const password = bcrypt.hashSync(req.body.password, 10);
-  if (email.length === 0 || password.length === 0) {
+  const inputPassword = req.body.password;
+  const password = bcrypt.hashSync(inputPassword, salt);
+  if (email.length === 0 || inputPassword.length === 0) {
     res.status(400);
     const templateVars = {urls: urlDatabase, users, userId: req.session.user_id, blank: true, inUse: false};
     return res.render('register', templateVars);
   }
+
   if (getUserByEmail(email, users)) {
     res.status(400);
     const templateVars = {urls: urlDatabase, users, userId: req.session.user_id, blank: false, inUse: true};
     return res.render('register', templateVars);
   }
+
   users[id] = { id, email, password };
 
   req.session.user_id = users[id].id;
-  res.redirect('/urls');
+  return res.redirect('/urls');
 });
 
 
 // Other
 app.get('/urls.json', (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
+  return res.json(urlDatabase);
 });
 
 
