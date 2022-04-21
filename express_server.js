@@ -165,6 +165,12 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   if (urlDatabase[shortURL] && urlDatabase[shortURL].userID === req.session.user_id) {
     delete urlDatabase[shortURL];
     return res.redirect('/urls');
+  } else if (!req.session.user_id) {
+    res.status(403);
+    const statusCode = 403;
+    const errorMessage = 'You must be logged in to delete shortURLs';
+    const templateVars = { users,  userId: req.session.user_id, statusCode, errorMessage };
+    return res.render('error', templateVars);
   }
   res.status(403);
   const statusCode = 403;
