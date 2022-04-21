@@ -33,26 +33,7 @@
     <% } else { %>
       <h4>ShortURL for: </h4>
       <h3><%= urls[shortURL].longURL %></h3>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Short URL</th>
-            <th scope="col">Long URL</th>
-            <th scope="col">Date Created</th>
-            <th scope="col">Visits</th>
-            <th scope="col">Unique Visits</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><%= shortURL %></td>
-            <td><%= urls[shortURL].longURL %></td>
-            <td><%= urls[shortURL].dateCreated %></td>
-            <td><%= urls[shortURL].visits %></td>
-            <td><%= urls[shortURL].uniqueVisits.length %></td>
-          </tr>
-        </tbody>
-      </table>
+      <h4 style="margin: 15px;"><a href="/u/<%= shortURL %>"><%= shortURL %></a></h4>
       <div class="card-footer text-muted">
         <h2>Edit</h2>
         <% if (blank) { %>
@@ -66,6 +47,30 @@
           </div>
         </form>
       </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Short URL</th>
+            <th scope="col">Long URL</th>
+            <th scope="col">Date Created</th>
+            <th scope="col">Visits</th>
+            <th scope="col">Unique Visits</th>
+            <th scope="col">Visits Log</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><%= shortURL %></td>
+            <td><%= urls[shortURL].longURL %></td>
+            <td><%= urls[shortURL].dateCreated %></td>
+            <td><%= urls[shortURL].visits %></td>
+            <td><%= urls[shortURL].uniqueVisits.length %></td>
+            <td><% for (let obj of urls[shortURL].visitLog) { %>
+              <p><%= obj.visitor %> visited at <%= obj.visitTime %></p>
+            <% } %></td>
+          </tr>
+        </tbody>
+      </table>
     <% } %>
   </div>
   <!-- Bootstrap JS -->

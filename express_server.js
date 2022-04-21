@@ -101,7 +101,8 @@ app.post('/urls', (req, res) => {
     userID: req.session.user_id,
     dateCreated: new Date(),
     visits: 0,
-    uniqueVisits: []
+    uniqueVisits: [],
+    visitLog: []
   };
   return res.redirect(`/urls/${shortURL}`);
 });
@@ -192,6 +193,7 @@ app.get('/u/:shortURL', (req, res) => {
 
   const shortURL = req.params.shortURL;
   urlDatabase[shortURL].visits++;
+  urlDatabase[shortURL].visitLog.push({ visitor: req.session.user_id, visitTime: new Date() });
   if (!urlDatabase[shortURL].uniqueVisits.includes(req.session.user_id)) {
     urlDatabase[shortURL].uniqueVisits.push(req.session.user_id);
   }
