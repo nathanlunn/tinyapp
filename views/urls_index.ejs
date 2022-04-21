@@ -19,6 +19,9 @@
           <th scope="col">Long URL</th>
           <th scope="col">Edit</th>
           <th scope="col">Delete</th>
+          <th scope="col">Date Created</th>
+          <th scope="col">Visits</th>
+          <th scope="col">Unique Visits</th>
         </tr>
       </thead>
       <tbody>
@@ -36,10 +39,16 @@
                 <button type="submit" class="btn btn-danger">Delete</button>
               </form>
             </td>
+            <td><%= urls[url].dateCreated %></td>
+            <td><%= urls[url].visits %></td>
+            <td><%= urls[url].uniqueVisits.length %></td>
           </tr>
         <% } %>
       </tbody>
     </table>
+    <form action="/urls/new" method="GET">
+      <button class="btn btn-primary" >Create a New Short Link</button>
+    </form>
     <% if (userId === undefined) { %>
       <h2>Please login to view your URLs</h2>
     <% } %>

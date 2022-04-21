@@ -16,6 +16,9 @@
 
     <main style="margin: 1em;">
       <h3>Create TinyURL</h3>
+      <% if (blank) { %>
+        <h5 style="color: rgb(171, 4, 4)">Please sumbit a URL</h5>
+      <% } %>
       <form class="form-inline" action="/urls" method="POST">
         <div class="form-group mb-2">
           <label for="longURL">Enter a URL:</label>

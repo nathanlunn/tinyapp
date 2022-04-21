@@ -12,6 +12,20 @@
   <%- include('partials/_header') %>
   <div class="card-body"><h1>Login:</h1></div>
   <div class="card-footer text-muted">
+    <% if (failed) { %>
+    <div>
+      <h5 style="color: rgb(171, 4, 4)">Invalid email or password. Please try again.</h5>
+      <h5 style="color: rgb(171, 4, 4)">Don't have an account? Register here: 
+        <form action="/register" method="GET" style="display: inline-block">
+          <div class="input-group mb-3" style="margin-top: 10px">
+            <div style="margin-left: 10px">
+              <button type="submit" class="btn btn-warning">Register</button>
+            </div>
+          </div>
+        </form>
+      </h5>
+    </div>
+    <% } %>
     <form action="/login" method="POST">
       <div><label for="email">Email: </label></div>
       <div><input type="email" name="email" placeholder="person@example.com" style="margin-bottom: 10px"></div>
