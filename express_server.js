@@ -1,11 +1,13 @@
 
 const express = require('express');
+const methodOverride = require('method-override');
 const app = express();
+app.use(methodOverride('_method'));
+const morgan = require('morgan');
+app.use(morgan('dev'));
 const PORT = 8080; // default port 8080
-
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
-
 const cookieSession = require('cookie-session');
 app.use(cookieSession({
   name: 'session',
@@ -14,10 +16,8 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
-
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
-
 app.set('view engine', 'ejs');
 
 const generateHelperFunctions = require('./helpers');
@@ -123,7 +123,7 @@ app.get('/urls/:shortURL', (req, res) => {
   return res.render('urls_show', templateVars);
 });
 
-app.post('/urls/:shortURL', (req, res) => {
+app.put('/urls/:shortURL', (req, res) => {
   let shortURL = req.params.shortURL;
   if (!urlDatabase[shortURL]) {
     res.status(403);
@@ -160,7 +160,7 @@ app.post('/urls/:shortURL', (req, res) => {
   return res.render('error', templateVars);
 });
 
-app.post('/urls/:shortURL/delete', (req, res) => {
+app.delete('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
   if (urlDatabase[shortURL] && urlDatabase[shortURL].userID === req.session.user_id) {
     delete urlDatabase[shortURL];
@@ -211,7 +211,7 @@ app.get('/login', (req, res) => {
   return res.render('login', templateVars);
 });
 
-app.post('/login', (req, res) =>{
+app.put('/login', (req, res) =>{
   const email = req.body.email;
   const password = req.body.password;
   if (getUserByEmail(email, users)) {
@@ -227,7 +227,7 @@ app.post('/login', (req, res) =>{
   return res.render('login', templateVars);
 });
 
-app.post('/logout', (req, res) => {
+app.put('/logout', (req, res) => {
   delete req.session.user_id;
   return res.redirect('/urls');
 });

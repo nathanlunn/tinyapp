@@ -27,7 +27,7 @@
       </form>
     <% } else { %>
       <div class="navbar-brand" style="color: rgb(207, 209, 219)">Logged in as: <span style="color:rgb(47, 48, 101)"><%= users[userId].email %></span></div>
-      <form action="/logout" type="button" method="POST" class="float-end">
+      <form action="/logout?_method=PUT" type="button" method="POST" class="float-end">
         <button type="submit" class="btn btn-danger">Logout</button>
       </form>
     <% } %>
