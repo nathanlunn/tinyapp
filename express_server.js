@@ -44,7 +44,7 @@ const users = {
 const { generateRandomString, getUserByEmail, validCookie, urlsOwnedByUser } = generateHelperFunctions(users, urlDatabase);
 
 
-// custom middleware
+// custom middleware needed due to no saved database after server restart.
 app.use((req, res, next) => {
   if (!validCookie(req.session.user_id, users)) {
     delete req.session.user_id;

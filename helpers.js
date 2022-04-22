@@ -1,4 +1,6 @@
 const generateHelperFunctions = function(users, urlDatabase) {
+  // creates a 6 character random string made up of numbers and lower and upper case letters
+  // used to create user ID's and short URLs
   const generateRandomString = function() {
     let result = '';
     for (let i = 0; i < 6; i++) {
@@ -14,6 +16,7 @@ const generateHelperFunctions = function(users, urlDatabase) {
     return result;
   };
   
+  // used to search for user with an email that matches the email inputted by the user
   const getUserByEmail = function(email, database) {
     for (let user in database) {
       if (database[user].email === email) {
@@ -33,6 +36,7 @@ const generateHelperFunctions = function(users, urlDatabase) {
     return false;
   };
 
+  // used to find urls in the url database that have the same user ID value as the user ID found in the session's cookie
   const urlsOwnedByUser = function(cookie) {
     const filteredDatabase = {};
     for (let url in urlDatabase) {
