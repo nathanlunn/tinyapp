@@ -67,6 +67,7 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
   const filteredDatabase = urlsOwnedByUser(req.session.user_id);
   const templateVars = {urls: filteredDatabase, users, userId: req.session.user_id};
+  console.log(req.session);
   return res.render('urls_index', templateVars);
 });
 
@@ -230,7 +231,7 @@ app.put('/login', (req, res) =>{
 });
 
 app.put('/logout', (req, res) => {
-  delete req.session.user_id;
+  req.session = null;
   return res.redirect('/urls');
 });
 
